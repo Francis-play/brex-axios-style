@@ -1,133 +1,164 @@
-# brex-axios-style
+# 🦊 brex-axios-style
 
-**Un wrapper para [Brex](https://github.com/Breimerct/Brex) con una API similar a Axios.**  
-Ideal para quienes prefieren un estilo simple (`client.get`, `client.post`, etc.) pero quieren algo moderno, ligero y con tipado en TypeScript.
+Cliente HTTP ligero inspirado en **Axios**, construido sobre [`@breimerct/brex`](https://github.com/Breimerct/Brex).  
+Diseñado para integrarse fácilmente con APIs, con soporte para interceptores, manejo de errores y respuestas enriquecidas.
 
 ---
 
 ## 🚀 Instalación
 
-Primero instala Brex y esta librería:
-
 ```bash
-npm install @breimerct/brex brex-axios-style
+npm install @breimerct/brex
+# Este wrapper es local. Cópialo o publícalo desde tu proyecto.
 ````
 
 ---
 
-## 🧠 ¿Qué es esto?
+## ✨ Características
 
-Brex es una librería HTTP liviana basada en `fetch`, con soporte de interceptores y tipado fuerte.
-Este wrapper (`brex-axios-style`) te permite usarlo con una **API como la de Axios**, más cómoda si vienes de ese mundo.
-
----
-
-## ✅ Características
-
-* ✅ `client.get()`, `client.post()`, `client.put()`, `client.delete()`
-* ✅ Tipado genérico (`client.get<T>()`)
-* ✅ Opción `throwOnError` para usar `try/catch` como en Axios
-* ✅ Soporte de headers comunes (`client.defaults.headers.common`)
-* 🧪 Basado en [Brex](https://github.com/Breimerct/Brex), sin dependencias
+* API estilo Axios (`get`, `post`, `put`, `delete`, `patch`, `request`)
+* Soporte completo de `headers`, `params`, `data`
+* Interceptores de `request` y `response` (con manejo de errores)
+* Respuesta estándar `{ data, status, headers }`
+* Tipado completo en TypeScript
 
 ---
 
-## ✍️ Uso básico
+## 🔧 Uso básico
 
 ```ts
-import { createBrexAxiosStyleClient } from 'brex-axios-style';
-
-type Post = {
-  id: number;
-  title: string;
-  body: string;
-};
+import { createBrexAxiosStyleClient } from './brex-axios-style';
 
 const api = createBrexAxiosStyleClient({
-  baseURL: 'https://jsonplaceholder.typicode.com',
-  throwOnError: true
+  baseUrl: 'https://api.example.com',
 });
 
-async function main() {
-  try {
-    const posts = await api.get<Post[]>('/posts');
-    console.log(posts[0]);
-  } catch (error) {
-    console.error('Error al obtener los posts:', error);
+// GET
+const res = await api.get<{ name: string }>('/user');
+console.log(res.data); // { name: 'John' }
+console.log(res.status); // 200
+```
+
+---
+
+## 🧰 Métodos disponibles
+
+```ts
+api.get<T>(url, config?)
+api.post<T>(url, data?, config?)
+api.put<T>(url, data?, config?)
+api.patch<T>(url, data?, config?)
+api.delete<T>(url, config?)
+api.request<T>({ method, url, data?, params?, headers? })
+```
+
+---
+
+## 🔁 Interceptores
+
+### ✋ Request Interceptor
+
+```ts
+api.interceptors.request.use((config) => {
+  return {
+    ...config,
+    headers: {
+      ...config.headers,
+      Authorization: 'Bearer your_token',
+    },
+  };
+});
+```
+
+### 📦 Response Interceptor
+
+```ts
+api.interceptors.response.use(
+  (res) => {
+    console.log('Interceptado:', res.status);
+    return res;
+  },
+  (error) => {
+    console.error('Error interceptado:', error.message);
+    throw error;
   }
+);
+```
+
+---
+
+## 🔎 Ejemplo completo
+
+```ts
+const api = createBrexAxiosStyleClient({
+  baseUrl: 'https://api.example.com',
+  throwOnError: true,
+});
+
+api.interceptors.request.use((config) => {
+  config.headers = {
+    ...config.headers,
+    Authorization: 'Bearer abc123',
+  };
+  return config;
+});
+
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.message.includes('401')) {
+      // Redirige a login, por ejemplo
+    }
+    throw err;
+  }
+);
+
+const response = await api.post('/login', { username: 'admin', password: '123' });
+console.log(response.data);
+```
+
+---
+
+## 📦 Tipos de respuesta
+
+Todos los métodos devuelven:
+
+```ts
+interface AxiosResponse<T> {
+  data: T;
+  status: number;
+  headers: Record<string, string>;
 }
-
-main();
 ```
 
 ---
 
-## 🛡️ Manejo de errores
-
-Por defecto, puedes elegir entre:
-
-### 1. Modo seguro (sin `throw`):
+## 🔧 Opciones
 
 ```ts
-const api = createBrexAxiosStyleClient({ baseURL: '...', throwOnError: false });
-const posts = await api.get<Post[]>('/posts'); // posts puede ser undefined si hay error
-```
-
-### 2. Modo `try/catch` (como Axios):
-
-```ts
-const api = createBrexAxiosStyleClient({ baseURL: '...', throwOnError: true });
-
-try {
-  const posts = await api.get<Post[]>('/posts');
-} catch (e) {
-  console.error(e);
-}
+createBrexAxiosStyleClient({
+  baseUrl: string;
+  timeout?: number;
+  throwOnError?: boolean; // Lanza error si BrexResponse tiene error
+});
 ```
 
 ---
 
-## 🔐 Headers globales
+## 🧪 Testing
 
-```ts
-api.defaults.headers.common['Authorization'] = 'Bearer tu_token';
-```
-
-Estos headers se enviarán en todas las solicitudes.
+Puedes mockear el cliente usando herramientas como `msw`, `jest`, etc.
+(Pronto ejemplos y tests automáticos).
 
 ---
 
-## ✨ API completa
+## 🛠️ Requisitos
 
-```ts
-const client = createBrexAxiosStyleClient(config);
-```
-
-### Métodos disponibles:
-
-* `client.get<T>(url)`
-* `client.post<T>(url, body?)`
-* `client.put<T>(url, body?)`
-* `client.delete<T>(url)`
-* `client.defaults.headers.common` → para headers globales
+* `@breimerct/brex` como base (requerido)
+* Node.js >= 18 recomendado
 
 ---
 
-## 📦 Requisitos
+## 📄 Licencia
 
-* Node.js v18+ (o polyfill para `fetch`)
-* TypeScript recomendado
-
----
-
-## 📌 Créditos
-
-Basado en el excelente proyecto [Brex](https://github.com/Breimerct/Brex) de [@Breimerct](https://github.com/Breimerct).
-
-Este wrapper fue creado por @Francis-play con ❤️ para hacer la transición desde Axios más sencilla.
-
----
-
-## 📬 ¿Sugerencias?
-
-¡Pull requests y sugerencias son bienvenidas!
+MIT
