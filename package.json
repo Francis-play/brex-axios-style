@@ -1,7 +1,7 @@
 {
   "name": "brex-axios-style",
   "version": "0.1.0",
-  "description": "Axios-style wrapper for Brex HTTP client",
+  "description": "Cliente HTTP estilo Axios basado en Brex, con interceptores y respuestas estándar.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
