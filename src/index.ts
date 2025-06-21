@@ -10,23 +10,34 @@ function throwIfError<T>(res: BrexResponse<T>): T {
   return res.content!;
 }
 
+type AxiosHeaders = Record<string, string>;
+
 type BrexAxiosStyleClient = {
   get<T>(url: string): Promise<T>;
   post<T>(url: string, body?: unknown): Promise<T>;
   put<T>(url: string, body?: unknown): Promise<T>;
   delete<T>(url: string): Promise<T>;
+  defaults: {
+    headers: {
+      common: AxiosHeaders;
+    };
+  };
 };
 
 type BrexAxiosStyleOptions = ClientConfig & {
   throwOnError?: boolean;
 };
 
-export function createBrexAxiosStyleClient(
-  options: BrexAxiosStyleOptions
-): BrexAxiosStyleClient {
-  const { throwOnError = false, ...brexConfig } = options;
+  const defaultHeaders: AxiosHeaders = {};
 
-  const client = createBrexClient(brexConfig);
+  // Agregar interceptor
+  client.addRequestInterceptor((config) => {
+    config.headers = {
+      ...defaultHeaders,
+      ...(config.headers || {})
+    };
+    return config;
+  });
 
   return {
     async get<T>(url: string): Promise<T> {
@@ -45,5 +56,9 @@ export function createBrexAxiosStyleClient(
       const res = await client.delete<T>(url);
       return throwOnError ? throwIfError(res) : (res.content as T);
     },
+    defaults: {
+      headers: {
+        common: defaultHeaders
+      }
+    }
   };
-}
