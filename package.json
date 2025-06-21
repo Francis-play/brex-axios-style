@@ -1,0 +1,21 @@
+{
+  "name": "brex-axios-style",
+  "version": "0.1.0",
+  "description": "Axios-style wrapper for Brex HTTP client",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node test.ts"
+  },
+  "keywords": ["http", "axios", "brex", "fetch", "wrapper", "typescript"],
+  "author": "Tu Nombre",
+  "license": "MIT",
+  "devDependencies": {
+    "ts-node": "^10.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@breimerct/brex": "^1.4.17"
+  }
+}
